@@ -1,0 +1,10 @@
+## Interface: 20504
+## Title: XPTimerRedux
+## Notes: Lightweight XP session tracker with XP/hour and time-to-level.
+## Author: XPTimerRedux Team
+## Version: 1.0.0
+## SavedVariables: XPTimerReduxDB
+
+savedvars.lua
+ui.lua
+core.lua
