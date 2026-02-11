@@ -1,5 +1,8 @@
 # XPTimerRedux
 
+<img width="348" height="237" alt="image" src="https://github.com/user-attachments/assets/4db22c2c-2a7b-4b33-a6f8-6a067c906709" />
+
+
 A lightweight World of Warcraft XP session tracker for **Retail** and **TBC Classic**.
 
 ## Features
