@@ -2,6 +2,8 @@ local addonName, addon = ...
 
 addon.state = {
     sessionStartTime = 0,
+    accumulatedElapsed = 0,
+    running = true,
     sessionXP = 0,
     lastXP = 0,
     lastXPMax = 0,
@@ -32,24 +34,79 @@ function addon:FormatTime(seconds)
 end
 
 function addon:GetElapsedSeconds()
-    if not self.state.sessionStartTime or self.state.sessionStartTime <= 0 then
-        return 0
+    local state = self.state
+    local elapsed = state.accumulatedElapsed or 0
+
+    if state.running and state.sessionStartTime and state.sessionStartTime > 0 then
+        elapsed = elapsed + max(0, time() - state.sessionStartTime)
     end
 
-    return max(0, time() - self.state.sessionStartTime)
+    return max(0, elapsed)
+end
+
+function addon:StartTracking()
+    if self.state.running then
+        return
+    end
+
+    self.state.sessionStartTime = time()
+    self.state.running = true
+
+    if self.UI then
+        self.UI:SetTrackingState(true)
+    end
+
+    self:UpdateUI()
+end
+
+function addon:StopTracking()
+    if not self.state.running then
+        return
+    end
+
+    self.state.accumulatedElapsed = self:GetElapsedSeconds()
+    self.state.sessionStartTime = 0
+    self.state.running = false
+
+    if self.UI then
+        self.UI:SetTrackingState(false)
+    end
+
+    self:UpdateUI()
+end
+
+function addon:ToggleTracking()
+    if self.state.running then
+        self:StopTracking()
+    else
+        self:StartTracking()
+    end
 end
 
 function addon:ResetSession()
+    self.state.accumulatedElapsed = 0
     self.state.sessionStartTime = time()
+    self.state.running = true
     self.state.sessionXP = 0
     self.state.lastXP = UnitXP("player") or 0
     self.state.lastXPMax = UnitXPMax("player") or 0
     self.state.lastLevel = UnitLevel("player") or 0
 
+    if self.UI then
+        self.UI:SetTrackingState(true)
+    end
+
     self:UpdateUI()
 end
 
 function addon:ProcessXPChange()
+    if not self.state.running then
+        self.state.lastXP = UnitXP("player") or 0
+        self.state.lastXPMax = UnitXPMax("player") or 0
+        self.state.lastLevel = UnitLevel("player") or 0
+        return
+    end
+
     local state = self.state
     local currentXP = UnitXP("player") or 0
     local currentXPMax = UnitXPMax("player") or 0
@@ -132,6 +189,10 @@ function addon:HandleSlashCommand(input)
         self.UI:SetVisible(false)
     elseif command == "reset" then
         self:ResetSession()
+    elseif command == "start" then
+        self:StartTracking()
+    elseif command == "stop" then
+        self:StopTracking()
     elseif command == "scale" then
         if self:SetScale(value) then
             print("XPTimerRedux: scale set to " .. string.format("%.2f", self.db.scale))
@@ -139,7 +200,7 @@ function addon:HandleSlashCommand(input)
             print("XPTimerRedux: usage /xpt scale <number>")
         end
     else
-        print("XPTimerRedux commands: /xpt show | hide | reset | scale <number>")
+        print("XPTimerRedux commands: /xpt show | hide | reset | start | stop | scale <number>")
     end
 end
 

@@ -80,12 +80,21 @@ function addon.UI:CreateMainFrame()
 
     local resetButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
     resetButton:SetSize(46, 18)
-    resetButton:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -34, -7)
+    resetButton:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -58, -7)
     resetButton:SetText("Reset")
     resetButton:SetScript("OnClick", function()
         addon:ResetSession()
     end)
     frame.resetButton = resetButton
+
+    local startStopButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+    startStopButton:SetSize(42, 18)
+    startStopButton:SetPoint("RIGHT", resetButton, "LEFT", -2, 0)
+    startStopButton:SetText("Stop")
+    startStopButton:SetScript("OnClick", function()
+        addon:ToggleTracking()
+    end)
+    frame.startStopButton = startStopButton
 
     local minimizeButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
     minimizeButton:SetSize(22, 18)
@@ -153,6 +162,14 @@ function addon.UI:SetVisible(isShown)
     else
         self.frame:Hide()
     end
+end
+
+function addon.UI:SetTrackingState(isRunning)
+    if not self.frame or not self.frame.startStopButton then
+        return
+    end
+
+    self.frame.startStopButton:SetText(isRunning and "Stop" or "Start")
 end
 
 function addon.UI:Update(data)
